@@ -28,7 +28,6 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
-      // generate jwt token here
       generateToken(newUser._id, res);
       await newUser.save();
 
@@ -87,12 +86,12 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { fullName, email, password, profilePic } = req.body;
+    const { fullName, email, password, profilePic, removeProfilePic } = req.body;
     const userId = req.user._id;
 
     const updateData = {};
 
-    // Оновлення імені
+    // Update name
     if (fullName) {
       if (fullName.trim().length < 3) {
         return res.status(400).json({ message: "Name must be at least 3 characters" });
@@ -100,7 +99,7 @@ export const updateProfile = async (req, res) => {
       updateData.fullName = fullName;
     }
 
-    // Оновлення email
+    // Update email
     if (email) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return res.status(400).json({ message: "Invalid email format" });
@@ -113,7 +112,7 @@ export const updateProfile = async (req, res) => {
       updateData.email = email;
     }
 
-    // Оновлення паролю
+    // Update password
     if (password) {
       if (password.length < 6) {
         return res.status(400).json({ message: "Password must be at least 6 characters" });
@@ -130,8 +129,10 @@ export const updateProfile = async (req, res) => {
       updateData.password = await bcrypt.hash(password, salt);
     }
 
-    // Оновлення аватару
-    if (profilePic && profilePic.startsWith('data:image')) {
+    // Update profile picture or remove it
+    if (removeProfilePic) {
+      updateData.profilePic = null; // Or set to empty string if preferred
+    } else if (profilePic && profilePic.startsWith('data:image')) {
       const uploadResponse = await cloudinary.uploader.upload(profilePic);
       updateData.profilePic = uploadResponse.secure_url;
     }
@@ -148,7 +149,6 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 export const checkAuth = (req, res) => {
   try {

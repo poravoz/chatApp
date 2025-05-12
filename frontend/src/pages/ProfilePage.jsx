@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { Camera, Mail, User, Lock, Eye, EyeOff, Pencil } from "lucide-react";
+import { Camera, Mail, User, Lock, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const ProfilePage = () => {
@@ -83,6 +83,18 @@ const ProfilePage = () => {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleDeleteProfilePic = async () => {
+    if (isUpdatingProfile) return;
+
+    try {
+      await updateProfile({ removeProfilePic: true });
+      setSelectedImg(null);
+      toast.success("Profile picture removed", { id: "avatar-delete-success" });
+    } catch (err) {
+      toast.error(err.message || "Failed to remove profile picture");
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -222,9 +234,20 @@ const ProfilePage = () => {
                   disabled={isUpdatingProfile}
                 />
               </label>
+              {selectedImg && (
+                <button
+                  onClick={handleDeleteProfilePic}
+                  className={`absolute bottom-0 left-0 bg-red-500 hover:bg-red-600 p-2 rounded-full cursor-pointer transition-all duration-200 ${
+                    isUpdatingProfile ? "animate-pulse pointer-events-none" : ""
+                  }`}
+                  title="Delete profile picture"
+                >
+                  <Trash2 className="w-5 h-5 text-white" />
+                </button>
+              )}
             </div>
             <p className="text-sm text-zinc-400">
-              {isUpdatingProfile ? "Uploading..." : "Click the icon to change photo"}
+              {isUpdatingProfile ? "Uploading..." : "Click the camera to change or trash to delete photo"}
             </p>
           </div>
 
@@ -244,7 +267,6 @@ const ProfilePage = () => {
                 />
             </div>
           </div>
-
 
             {/* Email Input */}
             <div>
@@ -266,7 +288,6 @@ const ProfilePage = () => {
               </p>
             )}
             </div>
-
 
             {/* Profile Edit Buttons */}
             {!isEditingProfile ? (
@@ -323,7 +344,6 @@ const ProfilePage = () => {
                 className="absolute top-1/2 right-3 transform -translate-y-1/2"
                 onClick={() => setShowPassword(!showPassword)}
               >
-
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
@@ -348,12 +368,10 @@ const ProfilePage = () => {
                   className="absolute top-1/2 right-3 transform -translate-y-1/2"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
-
 
             {/* Password Edit Buttons */}
             {!isEditingPassword ? (
