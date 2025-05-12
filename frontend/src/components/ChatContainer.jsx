@@ -16,8 +16,10 @@ const ChatContainer = () => {
     selectedUser,
     deleteMessage,
     editMessage,
+    subscribeToMessages,
+    unsubscribeToMessages,
   } = useChatStore();
-  const { authUser } = useAuthStore();
+  const { authUser } = useAuthStore(); 
   const messageEndRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [editedText, setEditedText] = useState("");
@@ -26,7 +28,11 @@ const ChatContainer = () => {
 
   useEffect(() => {
     getMessages(selectedUser._id);
-  }, [selectedUser._id, getMessages]);
+
+    subscribeToMessages();
+
+    return () => unsubscribeToMessages();
+  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeToMessages]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -85,6 +91,11 @@ const ChatContainer = () => {
       const file = e.target.files?.[0];
       if (file) {
         try {
+          if (file.name === message.imageFileName) {
+            toast("Image is the same as the previous one.", { icon: <Info className="w-5 h-5" /> });
+            return; 
+          }
+  
           const reader = new FileReader();
           reader.onloadend = async () => {
             const base64 = reader.result;

@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import clodinary from "../lib/cloudinary.js";
+import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getUsersForSidebar = async(req, res) => {
     try {
@@ -55,6 +56,11 @@ export const sendMessage = async (req, res) => {
         });
 
         await newMessage.save();
+        
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        if(receiverSocketId) {
+          io.to(receiverSocketId).emit("newMessage", newMessage);
+        }
 
         res.status(201).json(newMessage);
     } catch (error) {
@@ -64,33 +70,35 @@ export const sendMessage = async (req, res) => {
 };
 
 export const editMessage = async (req, res) => {
-    try {
-      const { messageId } = req.params;
-      const { text, image } = req.body;
-  
-      let imageUrl = image || null;
-  
-      if (image && image !== "") {
-        const uploadResponse = await clodinary.uploader.upload(image);
-        imageUrl = uploadResponse.secure_url;
-      }
-  
-      const updatedMessage = await Message.findByIdAndUpdate(
-        messageId,
-        { text, image: imageUrl },
-        { new: true }
-      );
-  
-      if (!updatedMessage) {
-        return res.status(404).json({ error: "Message not found" });
-      }
-  
-      res.status(200).json(updatedMessage);
-    } catch (error) {
-      console.log("Error in editMessage controller: ", error.message);
-      res.status(500).json({ error: "Internal server error" });
+  try {
+    const { messageId } = req.params;
+    const { text, image } = req.body;
+
+    let imageUrl = image || null;
+
+    if (image && image.startsWith("data:image/")) {
+      const uploadResponse = await clodinary.uploader.upload(image);
+      imageUrl = uploadResponse.secure_url;
     }
+
+    const updatedMessage = await Message.findByIdAndUpdate(
+      messageId,
+      { text, image: imageUrl },
+      { new: true }
+    );
+
+    if (!updatedMessage) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+
+    res.status(200).json(updatedMessage);
+    io.emit("messageUpdated", updatedMessage);
+  } catch (error) {
+    console.log("Error in editMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
+
 
 export const deleteMessage = async (req, res) => {
     try {
@@ -103,6 +111,7 @@ export const deleteMessage = async (req, res) => {
       }
   
       res.status(200).json({ message: "Message deleted successfully" });
+      io.emit("messageDeleted", messageId);
     } catch (error) {
       console.log("Error in deleteMessage controller: ", error.message);
       res.status(500).json({ error: "Internal server error" });
@@ -128,6 +137,7 @@ export const replaceImage = async (req, res) => {
       }
   
       res.status(200).json(updatedMessage);
+      io.emit("messageUpdated", updatedMessage);
     } catch (error) {
       console.log("Error in replaceImage controller: ", error.message);
       res.status(500).json({ error: "Internal server error" });
@@ -149,6 +159,7 @@ export const removeImage = async (req, res) => {
       }
   
       res.status(200).json(updatedMessage);
+      io.emit("messageUpdated", updatedMessage);
     } catch (error) {
       console.log("Error in removeImage controller: ", error.message);
       res.status(500).json({ error: "Internal server error" });
