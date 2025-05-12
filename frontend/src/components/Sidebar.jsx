@@ -6,14 +6,13 @@ import SidebarSkeleton from "./skeleton/SidebarSkeleton";
 
 const Sidebar = () => {
   const { getUsers, selectedUser, setSelectedUser, isUsersLoading, users } = useChatStore();
-  const { onlineUsers = [] } = useAuthStore(); // Додано значення за замовчуванням
+  const { onlineUsers = [] } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
     getUsers();
   }, [getUsers]);
 
-  // Фільтрація користувачів за онлайн статусом
   const filteredUsers = showOnlineOnly 
     ? users?.filter(user => onlineUsers.includes(user._id)) || []
     : users || [];
@@ -39,7 +38,7 @@ const Sidebar = () => {
             <span className="text-sm">Show online only</span>
           </label>
           <span className="text-xs text-zinc-500">
-            ({Math.max(0, onlineUsers.length - 1)} online) {/* Додано Math.max для запобігання від'ємним значенням */}
+            ({Math.max(0, onlineUsers.length - 1)} online)
           </span>
         </div>
       </div>
