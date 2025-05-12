@@ -6,7 +6,7 @@ import MessageSkeleton from "./skeleton/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
 import { toast } from "react-hot-toast";
-import { Edit3, Trash2, Image as ImageIcon } from "lucide-react";
+import { Edit3, Trash2, Image as ImageIcon, Info } from "lucide-react";
 
 const ChatContainer = () => {
   const {
@@ -21,8 +21,8 @@ const ChatContainer = () => {
   const messageEndRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [editedText, setEditedText] = useState("");
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null); // Track which message is being confirmed
-  const [confirmRemoveImageId, setConfirmRemoveImageId] = useState(null); // Track image removal confirmation
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [confirmRemoveImageId, setConfirmRemoveImageId] = useState(null);
 
   useEffect(() => {
     getMessages(selectedUser._id);
@@ -40,9 +40,12 @@ const ChatContainer = () => {
   };
 
   const handleSave = async (id) => {
-    if (editedText.trim() !== "") {
+    const originalMessage = messages.find(msg => msg._id === id);
+    if (editedText.trim() !== "" && editedText.trim() !== originalMessage?.text) {
       await editMessage(id, editedText.trim());
       toast.success("Message updated!");
+    } else if (editedText.trim() === originalMessage?.text) {
+      toast("No changes detected", { icon: <Info className="w-5 h-5" /> });
     }
     setEditingId(null);
     setEditedText("");
@@ -55,7 +58,6 @@ const ChatContainer = () => {
       setConfirmDeleteId(null);
     } else {
       setConfirmDeleteId(id);
-      // Auto-hide confirmation after 3 seconds if not confirmed
       setTimeout(() => setConfirmDeleteId(null), 3000);
     }
   };
@@ -131,12 +133,15 @@ const ChatContainer = () => {
                 />
               </div>
             </div>
-            <div className="chat-header mb-1">
-              <time className="text-xs opacity-50 ml-1">
+            <div className="chat-header mb-1 flex items-center gap-1">
+              <time className="text-xs opacity-50">
                 {formatMessageTime(message.createdAt)}
               </time>
+              {message.updatedAt !== message.createdAt && message.text !== "" && (
+                <span className="text-xs opacity-50">(edited)</span>
+              )}
             </div>
-            <div className="chat-bubble flex flex-col max-w-[80%]">
+            <div className="chat-bubble flex flex-col max-w-[80%] bg-base-200">
               {message.image && (
                 <div className="relative">
                   <img
@@ -170,7 +175,7 @@ const ChatContainer = () => {
                             Confirm
                           </button>
                           <button
-                            className="btn btn-xs"
+                            className="btn btn-xs border border-base-content/50 text-base-content hover:bg-base-content/30"
                             onClick={() => setConfirmRemoveImageId(null)}
                           >
                             Cancel
@@ -186,7 +191,7 @@ const ChatContainer = () => {
                   <textarea
                     value={editedText}
                     onChange={(e) => setEditedText(e.target.value)}
-                    className="textarea textarea-bordered text-sm resize-none"
+                    className="textarea text-area-bordered text-sm resize-none bg-base-200 text-base-content border-base-content/30 focus:border-base-content/50 p-2"
                     rows={3}
                   />
                   <div className="flex gap-2 mt-1 text-xs">
@@ -198,7 +203,7 @@ const ChatContainer = () => {
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
-                      className="btn btn-xs btn-outline"
+                      className="btn btn-xs border border-base-content/50 text-base-content hover:bg-base-content/30"
                     >
                       Cancel
                     </button>
@@ -206,7 +211,7 @@ const ChatContainer = () => {
                 </>
               ) : (
                 <>
-                  {message.text && <p>{message.text}</p>}
+                  {message.text && <p className="text-base-content">{message.text}</p>}
                   {message.senderId === authUser._id && (
                     <div className="flex gap-2 mt-1 text-xs relative">
                       <button
@@ -235,7 +240,7 @@ const ChatContainer = () => {
                             Confirm
                           </button>
                           <button
-                            className="btn btn-xs"
+                            className="btn btn-xs border border-base-content/50 text-base-content hover:bg-base-content/30"
                             onClick={() => setConfirmDeleteId(null)}
                           >
                             Cancel
