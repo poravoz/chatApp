@@ -121,7 +121,7 @@ const SignUpPage = () => {
                                 type="text"
                                 name="fullName"
                                 className={`input input-bordered w-full pl-10 ${errors.fullName ? 'input-error' : ''}`}
-                                placeholder="Mykola Rud"
+                                placeholder="John Doe"
                                 value={formData.fullName}
                                 onChange={handleChange}
                             />
