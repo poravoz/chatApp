@@ -216,17 +216,18 @@ const ChatContainer = () => {
                     <div className="flex gap-2 mt-1 text-xs relative">
                       <button
                         onClick={() => handleEdit(message._id, message.text)}
-                        className="btn btn-xs bg-base-100 text-base-content border hover:bg-base-300"
+                        className="btn btn-xs bg-base-100 text-base-content border hover:bg-base-300 px-2 sm:px-3"
                       >
                         <Edit3 className="w-4 h-4" />
-                        Edit
+                        <span className="hidden sm:inline">Edit</span>
                       </button>
+
                       <button
                         onClick={() => handleDelete(message._id)}
-                        className="btn btn-xs bg-error text-white border-error hover:bg-error/80"
+                        className="btn btn-xs bg-error text-white border-error hover:bg-error/80 px-2 sm:px-3"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Delete
+                        <span className="hidden sm:inline">Delete</span>
                       </button>
                       {confirmDeleteId === message._id && (
                         <div
