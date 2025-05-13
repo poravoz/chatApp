@@ -19,7 +19,7 @@ const ChatContainer = () => {
     subscribeToMessages,
     unsubscribeToMessages,
   } = useChatStore();
-  const { authUser } = useAuthStore(); 
+  const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [editedText, setEditedText] = useState("");
@@ -28,9 +28,7 @@ const ChatContainer = () => {
 
   useEffect(() => {
     getMessages(selectedUser._id);
-
     subscribeToMessages();
-
     return () => unsubscribeToMessages();
   }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeToMessages]);
 
@@ -46,11 +44,12 @@ const ChatContainer = () => {
   };
 
   const handleSave = async (id) => {
-    const originalMessage = messages.find(msg => msg._id === id);
-    if (editedText.trim() !== "" && editedText.trim() !== originalMessage?.text) {
-      await editMessage(id, editedText.trim());
+    const originalMessage = messages.find((msg) => msg._id === id);
+    const trimmedText = editedText.trim();
+    if (trimmedText !== "" && trimmedText !== originalMessage?.text) {
+      await editMessage(id, trimmedText, originalMessage?.image);
       toast.success("Message updated!");
-    } else if (editedText.trim() === originalMessage?.text) {
+    } else if (trimmedText === originalMessage?.text) {
       toast("No changes detected", { icon: <Info className="w-5 h-5" /> });
     }
     setEditingId(null);
@@ -82,7 +81,7 @@ const ChatContainer = () => {
       setTimeout(() => setConfirmRemoveImageId(null), 3000);
     }
   };
-  
+
   const handleReplaceImage = async (message) => {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -93,9 +92,8 @@ const ChatContainer = () => {
         try {
           if (file.name === message.imageFileName) {
             toast("Image is the same as the previous one.", { icon: <Info className="w-5 h-5" /> });
-            return; 
+            return;
           }
-  
           const reader = new FileReader();
           reader.onloadend = async () => {
             const base64 = reader.result;
@@ -110,7 +108,7 @@ const ChatContainer = () => {
     };
     fileInput.click();
   };
-  
+
   if (isMessagesLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
@@ -148,7 +146,7 @@ const ChatContainer = () => {
               <time className="text-xs opacity-50">
                 {formatMessageTime(message.createdAt)}
               </time>
-              {message.updatedAt !== message.createdAt && message.text !== "" && (
+              {message.updatedAt !== message.createdAt && (
                 <span className="text-xs opacity-50">(edited)</span>
               )}
             </div>
@@ -175,10 +173,7 @@ const ChatContainer = () => {
                         <Trash2 className="w-3 h-3" />
                       </button>
                       {confirmRemoveImageId === message._id && (
-                        <div
-                          className="absolute right-0 mt-8 bg-base-200 p-2 rounded-lg shadow-md flex gap-2 transition-opacity duration-300"
-                          style={{ opacity: confirmRemoveImageId === message._id ? 1 : 0 }}
-                        >
+                        <div className="absolute right-0 mt-8 bg-base-200 p-2 rounded-lg shadow-md flex gap-2 transition-opacity duration-300">
                           <button
                             className="btn btn-error btn-xs"
                             onClick={() => handleRemoveImage(message)}
@@ -197,6 +192,7 @@ const ChatContainer = () => {
                   )}
                 </div>
               )}
+
               {editingId === message._id ? (
                 <>
                   <textarea
@@ -232,7 +228,6 @@ const ChatContainer = () => {
                         <Edit3 className="w-4 h-4" />
                         <span className="hidden sm:inline">Edit</span>
                       </button>
-
                       <button
                         onClick={() => handleDelete(message._id)}
                         className="btn btn-xs bg-error text-white border-error hover:bg-error/80 px-2 sm:px-3"
@@ -241,10 +236,7 @@ const ChatContainer = () => {
                         <span className="hidden sm:inline">Delete</span>
                       </button>
                       {confirmDeleteId === message._id && (
-                        <div
-                          className="absolute right-0 mt-8 bg-base-200 p-2 rounded-lg shadow-md flex gap-2 transition-opacity duration-300"
-                          style={{ opacity: confirmDeleteId === message._id ? 1 : 0 }}
-                        >
+                        <div className="absolute right-0 mt-8 bg-base-200 p-2 rounded-lg shadow-md flex gap-2 transition-opacity duration-300">
                           <button
                             className="btn btn-error btn-xs"
                             onClick={() => handleDelete(message._id)}
