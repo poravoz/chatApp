@@ -2,19 +2,24 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-
 import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 import { connectDB } from "./lib/db.js";
-
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
-import {app, server} from "./lib/socket.js";
+import { app, server } from "./lib/socket.js";
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+console.log("__filename:", __filename);
+console.log("__dirname:", __dirname);
+
 const PORT = process.env.PORT;
-const __dirname = path.resolve();
 
 app.use((req, res, next) => {
   console.log('Received request for:', req.originalUrl);
@@ -33,14 +38,17 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
-/*
-if(process.env.NODE_ENV==="production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-  })
-} */
+const clientPath = path.join(__dirname, "..", "client");
+console.log("Client path:", clientPath); 
+
+
+app.use(express.static(clientPath));
+
+app.use("/", (req, res) => {
+  console.log("Sending index.html from:", clientPath);
+  res.sendFile(path.join(clientPath, "index.html"));
+});
 
 connectDB().then(() => {
   server.listen(PORT, () => {
