@@ -126,10 +126,8 @@ const ProfilePage = () => {
         setIsEditingProfile(false);
         return;
       }
-  
-      console.log("Sending update request..."); 
+      
       await updateProfile(updates);
-      console.log("Update request completed"); 
   
       toast.success("Profile updated successfully");
       setPrevFullName(fullName);
