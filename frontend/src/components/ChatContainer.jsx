@@ -73,7 +73,7 @@ const ChatContainer = () => {
         await editMessage(message._id, message.text || "", null);
         toast.success("Image removed!");
         setConfirmRemoveImageId(null);
-      } catch (error) {
+      } catch {
         toast.error("Failed to remove image");
       }
     } else {
@@ -101,7 +101,7 @@ const ChatContainer = () => {
             toast.success("Image updated!");
           };
           reader.readAsDataURL(file);
-        } catch (error) {
+        } catch {
           toast.error("Failed to update image");
         }
       }
@@ -150,7 +150,7 @@ const ChatContainer = () => {
                 <span className="text-xs opacity-50">(edited)</span>
               )}
             </div>
-            <div className="chat-bubble flex flex-col max-w-[80%] bg-base-200">
+            <div className="chat-bubble flex flex-col max-w-[80%] bg-base-200 break-words whitespace-pre-wrap">
               {message.image && (
                 <div className="relative">
                   <img
@@ -218,7 +218,11 @@ const ChatContainer = () => {
                 </>
               ) : (
                 <>
-                  {message.text && <p className="text-base-content">{message.text}</p>}
+                  {message.text && (
+                    <p className="text-base-content break-words whitespace-pre-wrap">
+                      {message.text}
+                    </p>
+                  )}
                   {message.senderId === authUser._id && (
                     <div className="flex gap-2 mt-1 text-xs relative">
                       <button
