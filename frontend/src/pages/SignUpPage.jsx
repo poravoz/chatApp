@@ -64,8 +64,7 @@ const SignUpPage = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        
-        // Валідація при зміні поля
+
         if (name in errors) {
             setErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
         }
@@ -81,7 +80,6 @@ const SignUpPage = () => {
         
         setErrors(newErrors);
         
-        // Перевірка чи є помилки
         if (Object.values(newErrors).some(error => error)) {
             isValid = false;
             toast.error("Please fix the errors in the form");
