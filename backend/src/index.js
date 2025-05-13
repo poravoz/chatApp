@@ -38,16 +38,14 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
+const distPath = path.join(__dirname, "..", "..", "frontend", "dist");
+console.log("Dist path:", distPath); 
 
-const clientPath = path.join(__dirname, "..", "client");
-console.log("Client path:", clientPath); 
-
-
-app.use(express.static(clientPath));
+app.use(express.static(distPath));
 
 app.use("/", (req, res) => {
-  console.log("Sending index.html from:", clientPath);
-  res.sendFile(path.join(clientPath, "index.html"));
+  console.log("Sending index.html from:", distPath);
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 connectDB().then(() => {
