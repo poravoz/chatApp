@@ -70,8 +70,13 @@ const ChatContainer = () => {
   const handleRemoveImage = async (message) => {
     if (confirmRemoveImageId === message._id) {
       try {
-        await editMessage(message._id, message.text || "", null);
-        toast.success("Image removed!");
+        if (!message.text?.trim()) {
+          await deleteMessage(message._id);
+          toast.success("Message deleted!");
+        } else {
+          await editMessage(message._id, message.text, null);
+          toast.success("Image removed!");
+        }
         setConfirmRemoveImageId(null);
       } catch {
         toast.error("Failed to remove image");
