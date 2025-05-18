@@ -19,14 +19,29 @@ const Sidebar = () => {
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
+  const toggleOnlineOnly = () => setShowOnlineOnly(prev => !prev);
+
   return (
     <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
       <div className="border-b border-base-300 w-full p-5">
         <div className="flex items-center gap-2">
-          <Users className="size-6" />
-          <span className="font-medium hidden lg:block">Contacts</span>
+          <button
+            onClick={toggleOnlineOnly}
+            className={`
+              lg:hidden p-1 rounded-md transition-colors
+              ${showOnlineOnly ? "bg-green-500 text-white" : "hover:bg-base-200"}
+            `}
+          >
+            <Users className="size-6" />
+          </button>
+
+          <div className="hidden lg:flex items-center gap-2">
+            <Users className="size-6" />
+            <span className="font-medium">Contacts</span>
+          </div>
         </div>
-        {/* Online filter toggle */}
+
+        {/* Online filter toggle - large screens */}
         <div className="mt-3 hidden lg:flex items-center gap-2">
           <label className="cursor-pointer flex items-center gap-2">
             <input
