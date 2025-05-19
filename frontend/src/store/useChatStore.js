@@ -46,7 +46,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { selectedUser, messages  } = get();
+    const { selectedUser, messages } = get();
     const socket = useAuthStore.getState().socket;
   
     if (!selectedUser || !socket || !socket.connected) return;
@@ -56,7 +56,6 @@ export const useChatStore = create((set, get) => ({
     socket.off("messageDeleted");
   
     socket.on("newMessage", (newMessage) => {
-      const currentMessages = get().messages;
       const isDuplicate = messages.some((msg) => msg._id === newMessage._id);
       const isRelevant = newMessage.senderId === selectedUser._id || newMessage.receiverId === selectedUser._id;
 
