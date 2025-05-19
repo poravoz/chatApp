@@ -13,9 +13,9 @@ const Navbar = () => {
   
     const handleClick = () => {
       if (location.pathname !== "/") {
-        navigate("/"); // Завжди переходимо, якщо не на головній
+        navigate("/");
       } else if (selectedUser) {
-        setSelectedUser(null); // Якщо вже на головній — закриваємо чат
+        setSelectedUser(null);
       }
     };
   

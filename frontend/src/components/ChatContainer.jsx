@@ -25,6 +25,7 @@ const ChatContainer = () => {
   const [editedText, setEditedText] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [confirmRemoveImageId, setConfirmRemoveImageId] = useState(null);
+  const [originalText, setOriginalText] = useState("");
 
   useEffect(() => {
     getMessages(selectedUser._id);
@@ -38,9 +39,10 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  const handleEdit = (id, text) => {
+  const handleEdit = (id, text = "") => {
     setEditingId(id);
     setEditedText(text);
+    setOriginalText(text);
   };
 
   const handleSave = async (id) => {
@@ -57,9 +59,15 @@ const ChatContainer = () => {
   };
 
   const handleDelete = async (id) => {
+    const msg = messages.find((m) => m._id === id);
     if (confirmDeleteId === id) {
-      await deleteMessage(id);
-      toast.success("Message deleted!");
+      if (msg?.text?.trim() && msg?.image) {
+        await editMessage(id, "", msg.image);
+        toast.success("Text deleted!");
+      } else {
+        await deleteMessage(id);
+        toast.success("Message deleted!");
+      }
       setConfirmDeleteId(null);
     } else {
       setConfirmDeleteId(id);
@@ -127,7 +135,6 @@ const ChatContainer = () => {
   return (
     <div className="flex-1 flex flex-col overflow-auto relative">
       <ChatHeader />
-
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
@@ -235,15 +242,19 @@ const ChatContainer = () => {
                         className="btn btn-xs bg-base-100 text-base-content border hover:bg-base-300 px-2 sm:px-3"
                       >
                         <Edit3 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Edit</span>
+                        <span className="hidden sm:inline">
+                          {message.text ? "Edit" : "Add text"}
+                        </span>
                       </button>
-                      <button
-                        onClick={() => handleDelete(message._id)}
-                        className="btn btn-xs bg-error text-white border-error hover:bg-error/80 px-2 sm:px-3"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Delete</span>
-                      </button>
+                      {message.text?.trim() && (
+                        <button
+                          onClick={() => handleDelete(message._id)}
+                          className="btn btn-xs bg-error text-white border-error hover:bg-error/80 px-2 sm:px-3"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </button>
+                      )}
                       {confirmDeleteId === message._id && (
                         <div className="absolute right-0 mt-8 bg-base-200 p-2 rounded-lg shadow-md flex gap-2 transition-opacity duration-300">
                           <button
