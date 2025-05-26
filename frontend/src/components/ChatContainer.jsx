@@ -23,8 +23,8 @@ const ChatContainer = () => {
   const messageEndRef = useRef(null);
   const [editingId, setEditingId] = useState(null);
   const [editedText, setEditedText] = useState("");
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [confirmRemoveImageId, setConfirmRemoveImageId] = useState(null);
+  const [confirmRemoveTextId, setConfirmRemoveTextId] = useState(null);
 
   useEffect(() => {
     getMessages(selectedUser._id);
@@ -40,31 +40,29 @@ const ChatContainer = () => {
 
   const handleEdit = (id, text) => {
     setEditingId(id);
-    setEditedText(text);
+    setEditedText(text || "");
   };
 
   const handleSave = async (id) => {
     const originalMessage = messages.find((msg) => msg._id === id);
     const trimmedText = editedText.trim();
-    if (trimmedText !== "" && trimmedText !== originalMessage?.text) {
+
+    if (trimmedText === originalMessage?.text) {
+      toast("No changes detected", { icon: <Info className="w-5 h-5" /> });
+      setEditingId(null);
+      setEditedText("");
+      return;
+    }
+
+    if (trimmedText === "" && !originalMessage?.image) {
+      await deleteMessage(id);
+      toast.success("Message deleted!");
+    } else {
       await editMessage(id, trimmedText, originalMessage?.image);
       toast.success("Message updated!");
-    } else if (trimmedText === originalMessage?.text) {
-      toast("No changes detected", { icon: <Info className="w-5 h-5" /> });
     }
     setEditingId(null);
     setEditedText("");
-  };
-
-  const handleDelete = async (id) => {
-    if (confirmDeleteId === id) {
-      await deleteMessage(id);
-      toast.success("Message deleted!");
-      setConfirmDeleteId(null);
-    } else {
-      setConfirmDeleteId(id);
-      setTimeout(() => setConfirmDeleteId(null), 3000);
-    }
   };
 
   const handleRemoveImage = async (message) => {
@@ -84,6 +82,26 @@ const ChatContainer = () => {
     } else {
       setConfirmRemoveImageId(message._id);
       setTimeout(() => setConfirmRemoveImageId(null), 3000);
+    }
+  };
+
+  const handleRemoveText = async (message) => {
+    if (confirmRemoveTextId === message._id) {
+      try {
+        if (!message.image) {
+          await deleteMessage(message._id);
+          toast.success("Message deleted!");
+        } else {
+          await editMessage(message._id, "", message.image);
+          toast.success("Text removed!");
+        }
+        setConfirmRemoveTextId(null);
+      } catch {
+        toast.error("Failed to remove text");
+      }
+    } else {
+      setConfirmRemoveTextId(message._id);
+      setTimeout(() => setConfirmRemoveTextId(null), 3000);
     }
   };
 
@@ -127,7 +145,6 @@ const ChatContainer = () => {
   return (
     <div className="flex-1 flex flex-col overflow-auto relative">
       <ChatHeader />
-
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
@@ -197,7 +214,6 @@ const ChatContainer = () => {
                   )}
                 </div>
               )}
-
               {editingId === message._id ? (
                 <>
                   <textarea
@@ -219,6 +235,22 @@ const ChatContainer = () => {
                     >
                       Cancel
                     </button>
+                    {confirmRemoveTextId === message._id && (
+                      <div className="absolute right-0 mt-8 bg-base-200 p-2 rounded-lg shadow-md flex gap-2 transition-opacity duration-300">
+                        <button
+                          className="btn btn-error btn-xs"
+                          onClick={() => handleRemoveText(message)}
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          className="btn btn-xs border border-base-content/50 text-base-content hover:bg-base-content/30"
+                          onClick={() => setConfirmRemoveTextId(null)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -237,24 +269,26 @@ const ChatContainer = () => {
                         <Edit3 className="w-4 h-4" />
                         <span className="hidden sm:inline">Edit</span>
                       </button>
-                      <button
-                        onClick={() => handleDelete(message._id)}
-                        className="btn btn-xs bg-error text-white border-error hover:bg-error/80 px-2 sm:px-3"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Delete</span>
-                      </button>
-                      {confirmDeleteId === message._id && (
+                      {message.text && (
+                        <button
+                          onClick={() => handleRemoveText(message)}
+                          className="btn btn-xs bg-error text-white border-error hover:bg-error/80 px-2 sm:px-3"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="hidden sm:inline">Delete Text</span>
+                        </button>
+                      )}
+                      {confirmRemoveTextId === message._id && (
                         <div className="absolute right-0 mt-8 bg-base-200 p-2 rounded-lg shadow-md flex gap-2 transition-opacity duration-300">
                           <button
                             className="btn btn-error btn-xs"
-                            onClick={() => handleDelete(message._id)}
+                            onClick={() => handleRemoveText(message)}
                           >
                             Confirm
                           </button>
                           <button
                             className="btn btn-xs border border-base-content/50 text-base-content hover:bg-base-content/30"
-                            onClick={() => setConfirmDeleteId(null)}
+                            onClick={() => setConfirmRemoveTextId(null)}
                           >
                             Cancel
                           </button>
@@ -268,7 +302,6 @@ const ChatContainer = () => {
           </div>
         ))}
       </div>
-
       <MessagesInput />
     </div>
   );
