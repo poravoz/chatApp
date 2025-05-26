@@ -27,12 +27,7 @@ export const useChatStore = create((set, get) => ({
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
-      const newMessages = res.data;
-      const currentMessages = get().messages;
-
-      if (JSON.stringify(newMessages) !== JSON.stringify(currentMessages)) {
-        set({ messages: newMessages });
-      }
+      set({ messages: res.data });
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
@@ -51,46 +46,46 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { selectedUser, messages, getMessages } = get();
+    const { selectedUser, messages } = get();
     const socket = useAuthStore.getState().socket;
-
+  
     if (!selectedUser || !socket || !socket.connected) return;
-
+  
     socket.off("newMessage");
     socket.off("messageUpdated");
     socket.off("messageDeleted");
-
+  
     socket.on("newMessage", (newMessage) => {
-      const isRelevant = newMessage.senderId === selectedUser._id || newMessage.receiverId === selectedUser._id;
       const isDuplicate = messages.some((msg) => msg._id === newMessage._id);
+      const isRelevant = newMessage.senderId === selectedUser._id || newMessage.receiverId === selectedUser._id;
 
       if (!isRelevant) return;
-
+     
+     
       if (!isDuplicate) {
         set({ messages: [...messages, newMessage] });
       }
-      getMessages(selectedUser._id);
     });
-
+  
     socket.on("messageUpdated", (updatedMessage) => {
-      const updatedMessages = messages.map((msg) =>
+      const updatedMessages = get().messages.map(msg =>
         msg._id === updatedMessage._id ? updatedMessage : msg
       );
       set({ messages: updatedMessages });
     });
-
+  
     socket.on("messageDeleted", (deletedMessageId) => {
-      const filteredMessages = messages.filter((msg) => msg._id !== deletedMessageId);
+      const filteredMessages = get().messages.filter(msg => msg._id !== deletedMessageId);
       set({ messages: filteredMessages });
     });
   },
+  
+  
 
   unsubscribeToMessages: () => {
     const { socket } = get();
     if (socket) {
       socket.off("newMessage");
-      socket.off("messageUpdated");
-      socket.off("messageDeleted");
     }
   },
 
@@ -99,7 +94,7 @@ export const useChatStore = create((set, get) => ({
       const { messages } = get();
       const res = await axiosInstance.put(`/messages/${messageId}`, { text, image });
 
-      const updatedMessages = messages.map((msg) =>
+      const updatedMessages = messages.map(msg =>
         msg._id === messageId ? res.data : msg
       );
 
@@ -116,7 +111,7 @@ export const useChatStore = create((set, get) => ({
       const { messages } = get();
       await axiosInstance.delete(`/messages/${messageId}`);
 
-      const updatedMessages = messages.filter((msg) => msg._id !== messageId);
+      const updatedMessages = messages.filter(msg => msg._id !== messageId);
       set({ messages: updatedMessages });
     } catch (error) {
       toast.error(error.response.data.message);
